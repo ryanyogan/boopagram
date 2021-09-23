@@ -6,6 +6,7 @@ defmodule Boopagram.Accounts do
   import Ecto.Query, warn: false
   alias Boopagram.Repo
   alias Boopagram.Accounts.{User, UserToken, UserNotifier}
+  alias BoopagramWeb.UserAuth
 
   ## Database getters
 
@@ -345,5 +346,20 @@ defmodule Boopagram.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+  def log_out_user(token) do
+    user = get_user_by_session_token(token)
+
+    Repo.delete_all(UserToken.user_and_contexts_query(user, :all))
+
+    BoopagramWeb.Endpoint.broadcast_from(
+      self(),
+      UserAuth.pubsub_topic(),
+      "logout_user",
+      %{
+        user: user
+      }
+    )
   end
 end

@@ -8,6 +8,11 @@ defmodule Boopagram.Accounts.User do
     field :password, :string, virtual: true
     field :hashed_password, :string
     field :confirmed_at, :naive_datetime
+    field :username, :string
+    field :full_name, :string
+    field :avatar_url, :string, default: "/images/default-avatar.png"
+    field :bio, :string
+    field :website, :string
 
     timestamps()
   end
@@ -31,7 +36,14 @@ defmodule Boopagram.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password])
+    |> cast(attrs, [:email, :password, :username, :full_name, :avatar_url, :bio, :website])
+    |> validate_required([:username, :full_name])
+    |> validate_length(:username, min: 5, max: 30)
+    |> validate_format(:username, ~r/^[a-zA-Z0-9_.-]*$/,
+      message: "Please use letters and numbers without space(only characters allowed _ . -)"
+    )
+    |> unique_constraint(:username)
+    |> validate_length(:full_name, min: 4, max: 30)
     |> validate_email()
     |> validate_password(opts)
   end
@@ -46,13 +58,16 @@ defmodule Boopagram.Accounts.User do
   end
 
   defp validate_password(changeset, opts) do
-    changeset
-    |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 80)
-    # |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    # |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    # |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
-    |> maybe_hash_password(opts)
+    register_user? = Keyword.get(opts, :register_user, true)
+
+    if register_user? do
+      changeset
+      |> validate_required([:password])
+      |> validate_length(:password, min: 6, max: 80)
+      |> maybe_hash_password(opts)
+    else
+      changeset
+    end
   end
 
   defp maybe_hash_password(changeset, opts) do
