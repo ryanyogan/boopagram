@@ -26,6 +26,7 @@ defmodule Boopagram.MixProject do
 
   defp deps do
     [
+      {:bcrypt_elixir, "~> 2.0"},
       {:phoenix, "~> 1.5.12"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.4"},
@@ -41,7 +42,8 @@ defmodule Boopagram.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:timex, "~> 3.6"},
-      {:faker, "~> 0.16.0"}
+      {:faker, "~> 0.16.0"},
+      {:phx_gen_auth, "~> 0.7", only: [:dev], runtime: false}
     ]
   end
 
